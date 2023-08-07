@@ -89,6 +89,10 @@ export class AutoGenerator {
       } else {
         header += sp + 'return super.init({\n';
       }
+    } else if (this.options.lang === 'es5') {
+      header += `const Sequelize = require('@mctech/sequelize-impala');\n`;
+      header += 'module.exports = function(sequelize, DataTypes) {\n';
+      header += sp + "return sequelize.define('#TABLE#', {\n";
     } else {
       header += "const Sequelize = require('sequelize');\n";
       header += 'module.exports = function(sequelize, DataTypes) {\n';
@@ -97,9 +101,13 @@ export class AutoGenerator {
     return header;
   }
 
+  /**
+   * 字段模型生成
+   */
   generateText() {
     const tableNames = _.keys(this.tables);
 
+    // 模型公共导入部分生成
     const header = this.makeHeaderTemplate();
 
     const text: { [name: string]: string } = {};
@@ -119,7 +127,11 @@ export class AutoGenerator {
         needed.forEach((fkTable) => {
           const set = associations.needed[fkTable];
           const [fkSchema, fkTableName] = qNameSplit(fkTable);
-          const filename = recase(this.options.caseFile, fkTableName, this.options.singularize);
+          const filename = recase(
+            this.options.caseFile,
+            fkTableName,
+            this.options.singularize,
+          );
           str += 'import type { ';
           str += Array.from(set.values()).sort().join(', ');
           str += ` } from './${filename}';\n`;
@@ -176,7 +188,8 @@ export class AutoGenerator {
         str += ');\n';
       }
 
-      if (lang === 'es6' || lang === 'esm' || lang === 'ts') {
+      // if (lang === 'es6' || lang === 'esm' || lang === 'ts') {
+      if (['es6', 'es5', 'ts', 'esm'].includes(lang)) {
         if (this.options.useDefine) {
           str += this.space[1] + '}\n}\n';
         } else {
@@ -889,9 +902,9 @@ export class AutoGenerator {
       return false;
     }
     return (
-      (!additional.createdAt && recase("c", field) === 'createdAt') ||
+      (!additional.createdAt && recase('c', field) === 'createdAt') ||
       additional.createdAt === field ||
-      (!additional.updatedAt && recase("c", field) === 'updatedAt') ||
+      (!additional.updatedAt && recase('c', field) === 'updatedAt') ||
       additional.updatedAt === field
     );
   }
@@ -902,7 +915,7 @@ export class AutoGenerator {
       return false;
     }
     return (
-      (!additional.deletedAt && recase("c", field) === 'deletedAt') ||
+      (!additional.deletedAt && recase('c', field) === 'deletedAt') ||
       additional.deletedAt === field
     );
   }

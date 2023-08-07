@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+
 const path = require('path');
 const util = require('util');
 const fs = require('fs');
@@ -15,6 +16,8 @@ import {
   recase,
   Relation,
 } from './types';
+import { printDataTract } from '../utils/helper';
+
 const mkdirp = require('mkdirp');
 
 /** Writes text into files from TableData.text, and writes init-models */
@@ -37,6 +40,7 @@ export class AutoWriter {
     spaces?: boolean;
     indentation?: number;
   };
+
   constructor(tableData: TableData, options: AutoOptions) {
     this.tableText = tableData.text as { [name: string]: string };
     this.foreignKeys = tableData.foreignKeys;
@@ -89,6 +93,7 @@ export class AutoWriter {
 
     return Promise.all(promises);
   }
+
   private createInitString(tableNames: string[], assoc: string, lang?: string) {
     switch (lang) {
       case 'ts':
@@ -97,10 +102,13 @@ export class AutoWriter {
         return this.createESMInitString(tableNames, assoc);
       case 'es6':
         return this.createES5InitString(tableNames, assoc, 'const');
-      default:
-        return this.createES5InitString(tableNames, assoc, 'var');
+      case 'es5':
+        return this.createES5InitString(tableNames, assoc, 'const');
+      default: // es5
+        return this.createES5InitString(tableNames, assoc, 'const');
     }
   }
+
   private createFile(table: string) {
     // FIXME: schema is not used to write the file name and there could be collisions. For now it
     // is up to the developer to pick the right schema, and potentially chose different output
@@ -206,9 +214,19 @@ export class AutoWriter {
     return str;
   }
 
-  // create the ES5 init-models file to load all the models into Sequelize
+  /**
+   * es5格式文件初始化
+   * initModels文件生成
+   * @param tables
+   * @param assoc
+   * @param vardef
+   * @private
+   */
   private createES5InitString(tables: string[], assoc: string, vardef: string) {
-    let str = `${vardef} DataTypes = require("sequelize").DataTypes;\n`;
+    let str = '';
+    // str = `${vardef} DataTypes = require("sequelize").DataTypes;\n`;
+
+    str += `const { entity, select } = require('@yearrow/js-common-utils-library');\n`;
     const sp = this.space[1];
     const modelNames: string[] = [];
     // import statements
@@ -225,25 +243,36 @@ export class AutoWriter {
         this.options.lang,
       );
       modelNames.push(modelName);
-      str += `${vardef} _${modelName} = require("./${fileName}");\n`;
+      printDataTract(modelName);
+
+      // initModels 动态导入模型文件
+      str += `${vardef} ${modelName} = require('./${fileName}');\n`;
     });
 
     // create the initialization function
-    str += '\nfunction initModels(sequelize) {\n';
+    str += '\nasync function initModels(sequelize) {\n';
+    str += `${sp}sequelize.select = select;\n`;
+    str += `${sp}const models = {};\n`;
+    str += '\n';
     modelNames.forEach((m) => {
-      str += `${sp}${vardef} ${m} = _${m}(sequelize, DataTypes);\n`;
+      str += `${sp}models.${m} = entity(sequelize, ${m});\n`;
+      // str += `${sp}${vardef} ${m} = _${m}(sequelize, DataTypes);\n`;
     });
 
     // add the asociations
     str += '\n' + assoc;
 
     // return the models
-    str += `\n${sp}return {\n`;
+    /*str += `\n${sp}return {\n`;
     modelNames.forEach((m) => {
       str += `${this.space[2]}${m},\n`;
     });
     str += `${sp}};\n`;
-    str += '}\n';
+    str += '}\n';*/
+
+    str += `${sp}return models;\n`;
+    str += '}\n\n';
+
     str += 'module.exports = initModels;\n';
     str += 'module.exports.initModels = initModels;\n';
     str += 'module.exports.default = initModels;\n';

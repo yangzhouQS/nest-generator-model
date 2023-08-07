@@ -19,6 +19,7 @@ import {
   TableData,
   TSField,
 } from './types';
+import { printDataTract } from '../utils/helper';
 
 /** Generates text from each table in TableData */
 export class AutoGenerator {
@@ -111,6 +112,8 @@ export class AutoGenerator {
     const header = this.makeHeaderTemplate();
 
     const text: { [name: string]: string } = {};
+    console.log('00000000');
+    printDataTract(tableNames);
     tableNames.forEach((table) => {
       let str = header;
       const [schemaName, tableNameOrig] = qNameSplit(table);

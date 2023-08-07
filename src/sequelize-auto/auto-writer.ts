@@ -243,7 +243,6 @@ export class AutoWriter {
         this.options.lang,
       );
       modelNames.push(modelName);
-      printDataTract(modelName);
 
       // initModels 动态导入模型文件
       str += `${vardef} ${modelName} = require('./${fileName}');\n`;

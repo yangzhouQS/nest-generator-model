@@ -106,6 +106,7 @@ export class AutoGenerator {
    * 字段模型生成
    */
   generateText() {
+    // 原始表名称
     const tableNames = _.keys(this.tables);
 
     // 模型公共导入部分生成
@@ -117,6 +118,8 @@ export class AutoGenerator {
     tableNames.forEach((table) => {
       let str = header;
       const [schemaName, tableNameOrig] = qNameSplit(table);
+
+      // 模型名称规则转换
       const tableName = makeTableName(
         this.options.caseModel,
         tableNameOrig,
@@ -182,6 +185,7 @@ export class AutoGenerator {
         }
       }
 
+      // 表字段处理
       str += this.addTable(table);
 
       const lang = this.options.lang;
@@ -204,6 +208,7 @@ export class AutoGenerator {
       }
 
       const re = new RegExp('#TABLE#', 'g');
+      console.log(str);
       str = str.replace(re, tableName);
 
       text[table] = str;
@@ -226,6 +231,8 @@ export class AutoGenerator {
 
     // add all the fields
     let str = '';
+
+    // 表格所有字段
     const fields = _.keys(this.tables[table]);
     fields.forEach((field, index) => {
       timestamps ||= this.isTimestampField(field);
@@ -291,6 +298,12 @@ export class AutoGenerator {
   }
 
   // Create a string containing field attributes (type, defaultValue, etc.)
+  /**
+   * 字段生成处理，主键，类型，注释，默认值
+   * @param table
+   * @param field
+   * @private
+   */
   private addField(table: string, field: string): string {
     // ignore Sequelize standard fields
     const additional = this.options.additional;

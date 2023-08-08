@@ -33,6 +33,16 @@ export const mysqlOptions: DialectOptions = {
             ${makeCondition('C.TABLE_SCHEMA', schemaName)}`;
   },
 
+  showTablesCommentQuery(schemaName) {
+    return `SELECT 
+              TABLE_NAME AS table_name,
+              TABLE_SCHEMA AS table_schema,
+              TABLE_COMMENT AS table_comment
+            FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_TYPE = 'BASE TABLE'
+              AND TABLE_SCHEMA = '${schemaName}';`;
+  },
+
   /**
    * Generates an SQL query that tells if this table has triggers or not. The
    * result set returns the total number of triggers for that table. If 0, the

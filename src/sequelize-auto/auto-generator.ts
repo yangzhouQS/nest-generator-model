@@ -19,10 +19,10 @@ import {
   TableData,
   TSField,
 } from './types';
-import { printDataTract } from '../utils/helper';
 
 /** Generates text from each table in TableData */
 export class AutoGenerator {
+  tableData: TableData;
   dialect: DialectOptions;
   tables: { [tableName: string]: { [fieldName: string]: ColumnDescription } };
   foreignKeys: { [tableName: string]: { [fieldName: string]: FKSpec } };
@@ -54,6 +54,7 @@ export class AutoGenerator {
     dialect: DialectOptions,
     options: AutoOptions,
   ) {
+    this.tableData = tableData;
     this.tables = tableData.tables;
     this.foreignKeys = tableData.foreignKeys;
     this.hasTriggerTables = tableData.hasTriggerTables;
@@ -68,7 +69,9 @@ export class AutoGenerator {
   /**
    * 模板头部
    */
-  makeHeaderTemplate() {
+  makeHeaderTemplate(table: string) {
+    const tableComment = this.tableData.tableComments[table];
+
     let header = '';
     const sp = this.space[1];
 
@@ -98,7 +101,10 @@ export class AutoGenerator {
         header += sp + 'return super.init({\n';
       }
     } else if (this.options.lang === 'es5') {
-      header += `const Sequelize = require('@mctech/sequelize-impala');\n`;
+      header += `const Sequelize = require('@mctech/sequelize-impala');\n\n`;
+      if (tableComment) {
+        header += `// ${tableComment}\n`;
+      }
       header += 'module.exports = {\n';
       header += sp + `name: '#TABLE#',\n`;
       header += sp + 'fields: {\n';
@@ -117,14 +123,14 @@ export class AutoGenerator {
     // 原始表名称
     const tableNames = _.keys(this.tables);
 
-    // 模型公共导入部分生成
-    const header = this.makeHeaderTemplate();
-
     const modelText: { [name: string]: string } = {};
     const serviceText: { [name: string]: string } = {};
     const routerText: { [name: string]: string } = {};
 
     tableNames.forEach((table) => {
+      // 模型公共导入部分生成
+      const header = this.makeHeaderTemplate(table);
+
       let str = header;
       const [schemaName, tableNameOrig] = qNameSplit(table);
 

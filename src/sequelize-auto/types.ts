@@ -8,6 +8,7 @@ export interface Table {
   name?: string;
   table_name: string;
   table_schema?: string;
+  table_comment?: string;
 }
 
 export interface Field extends ColumnDescription {
@@ -84,6 +85,12 @@ export class TableData {
   indexes: { [tableName: string]: IndexSpec[] };
   /** Relations between models, computed from foreign keys */
   relations: Relation[];
+
+  /**
+   * 表注释
+   */
+  tableComments: { [tableName: string]: string };
+
   /** Text to be written to the model files, indexed by schemaName.tableName */
 
   /**
@@ -107,6 +114,7 @@ export class TableData {
     this.indexes = {};
     this.hasTriggerTables = {};
     this.relations = [];
+    this.tableComments = {};
   }
 }
 

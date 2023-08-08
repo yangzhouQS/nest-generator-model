@@ -11,6 +11,7 @@ import {
 } from './dialects/dialect-options';
 import { dialects } from './dialects/dialects';
 import { Field, IndexSpec, Table, TableData } from './types';
+import { printDataTract } from '../utils/helper';
 
 /** Queries the database and builds the tables, foreignKeys, indexes, and hasTriggerTables structures in TableData  */
 export class AutoBuilder {
@@ -47,19 +48,18 @@ export class AutoBuilder {
       prom = this.queryInterface.showAllTables();
     }
 
-    if (this.views) {
-      // Add views to the list of tables
-      prom = prom.then((tr) => {
-        // in mysql, use database name instead of schema
-        const vschema =
-          this.dialect.name === 'mysql'
-            ? this.sequelize.getDatabaseName()
-            : this.schema;
-
-        const showViewsSql = this.dialect.showViewsQuery(vschema);
-        return this.executeQuery<string>(showViewsSql).then((tr2) =>
-          tr.concat(tr2),
-        );
+    // this.sequelize.getDatabaseName()
+    // 查询表注释
+    if (this.dialect.showTablesCommentQuery) {
+      this.executeQuery(
+        this.dialect.showTablesCommentQuery(
+          this.schema || this.sequelize.getDatabaseName(),
+        ),
+      ).then((tablesComment = []) => {
+        printDataTract(tablesComment);
+        tablesComment.forEach((item: Table) => {
+          this.tableData.tableComments[item.table_name] = item.table_comment;
+        });
       });
     }
 
@@ -88,7 +88,7 @@ export class AutoBuilder {
       } as Table;
     });
 
-    // 指定生成的模型和跳骨的模型
+    // include/exclude tables
     if (this.includeTables) {
       const optables = mapOptionTables(this.includeTables, this.schema);
       tables = _.intersectionWith(tables, optables, isTableEqual);

@@ -12,6 +12,7 @@ export interface DialectOptions {
   isPrimaryKey: (record: any) => boolean;
   isSerialKey: (record: any) => boolean;
   showTablesQuery?: (schemaName?: string) => string;
+  showTablesCommentQuery?: (schemaName?: string) => string;
   showViewsQuery: (schemaName?: string) => string;
   showElementTypeQuery?: (tableName: string, schemaName?: string) => string;
   showGeographyTypeQuery?: (tableName: string, schemaName?: string) => string;

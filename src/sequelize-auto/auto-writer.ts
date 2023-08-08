@@ -100,7 +100,7 @@ export class AutoWriter {
         this.options.lang,
       );
       const initFilePath = path.join(
-        this.options.directory,
+        this.options.directory + '/model',
         'init-models' + (isTypeScript ? '.ts' : '.js'),
       );
       const writeFile = util.promisify(fs.writeFile);

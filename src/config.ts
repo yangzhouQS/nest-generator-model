@@ -5,6 +5,7 @@ export const config = {
   additional: {
     // 时间字段处理
     timestamps: false,
+    paranoid: false,
   },
   dialect: 'mysql',
   port: 3306,

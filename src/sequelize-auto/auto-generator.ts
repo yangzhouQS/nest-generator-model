@@ -135,85 +135,8 @@ export class AutoGenerator {
         this.options.lang,
       );
 
-      if (this.options.lang === 'ts') {
-        const associations = this.addTypeScriptAssociationMixins(table);
-        const needed = _.keys(associations.needed).sort();
-        needed.forEach((fkTable) => {
-          const set = associations.needed[fkTable];
-          const [fkSchema, fkTableName] = qNameSplit(fkTable);
-          const filename = recase(
-            this.options.caseFile,
-            fkTableName,
-            this.options.singularize,
-          );
-          str += 'import type { ';
-          str += Array.from(set.values()).sort().join(', ');
-          str += ` } from './${filename}';\n`;
-        });
-
-        str += '\nexport interface #TABLE#Attributes {\n';
-        str += this.addTypeScriptFields(table, true) + '}\n\n';
-
-        const primaryKeys = this.getTypeScriptPrimaryKeys(table);
-
-        if (primaryKeys.length) {
-          str += `export type #TABLE#Pk = ${primaryKeys
-            .map((k) => `"${recase(this.options.caseProp, k)}"`)
-            .join(' | ')};\n`;
-          str += `export type #TABLE#Id = #TABLE#[#TABLE#Pk];\n`;
-        }
-
-        const creationOptionalFields =
-          this.getTypeScriptCreationOptionalFields(table);
-
-        if (creationOptionalFields.length) {
-          str += `export type #TABLE#OptionalAttributes = ${creationOptionalFields
-            .map((k) => `"${recase(this.options.caseProp, k)}"`)
-            .join(' | ')};\n`;
-          str +=
-            'export type #TABLE#CreationAttributes = Optional<#TABLE#Attributes, #TABLE#OptionalAttributes>;\n\n';
-        } else {
-          str +=
-            'export type #TABLE#CreationAttributes = #TABLE#Attributes;\n\n';
-        }
-
-        str +=
-          'export class #TABLE# extends Model<#TABLE#Attributes, #TABLE#CreationAttributes> implements #TABLE#Attributes {\n';
-        str += this.addTypeScriptFields(table, false);
-        str += '\n' + associations.str;
-        str +=
-          '\n' +
-          this.space[1] +
-          'static initModel(sequelize: Sequelize.Sequelize): typeof #TABLE# {\n';
-
-        if (this.options.useDefine) {
-          str += this.space[2] + "return sequelize.define('#TABLE#', {\n";
-        } else {
-          str += this.space[2] + 'return #TABLE#.init({\n';
-        }
-      }
-
       // 单表处理
       str += this.addTable(table);
-
-      const lang = this.options.lang;
-      if (lang === 'ts' && this.options.useDefine) {
-        str += ') as typeof #TABLE#;\n';
-      } else {
-        str += ');\n';
-      }
-
-      // if (lang === 'es6' || lang === 'esm' || lang === 'ts') {
-      if (['es6', 'es5', 'ts', 'esm'].includes(lang)) {
-        if (this.options.useDefine) {
-          str += this.space[1] + '}\n}\n';
-        } else {
-          // str += this.space[1] + "return #TABLE#;\n";
-          str += this.space[1] + '}\n}\n';
-        }
-      } else {
-        str += '};\n';
-      }
 
       const re = new RegExp('#TABLE#', 'g');
       // console.log(str);
@@ -248,7 +171,6 @@ export class AutoGenerator {
 
       paranoid ||= this.isParanoidField(field);
 
-
       // 单个字段处理
       str += this.addField(table, field, index);
     });
@@ -256,6 +178,9 @@ export class AutoGenerator {
     // trim off last ",\n"
     str = str.substring(0, str.length - 2) + '\n';
 
+    str += space[0] + '}';
+
+    /*
     // add the table options
     str += space[1] + '}, {\n';
     if (!this.options.useDefine) {
@@ -297,14 +222,20 @@ export class AutoGenerator {
       });
     }
 
+    */
+
     // add indexes
-    if (!this.options.noIndexes) {
+    /*if (!this.options.noIndexes) {
       str += this.addIndexes(table);
-    }
+    }*/
 
     str = space[2] + str.trim();
     str = str.substring(0, str.length - 1);
-    str += '\n' + space[1] + '}';
+    str += space[1] + '}';
+
+    // 在此处添加details字段
+
+    str += '\n' + '}';
 
     return str;
   }
@@ -359,8 +290,6 @@ export class AutoGenerator {
 
     // column's attributes
     const fieldAttrs = _.keys(fieldObj);
-    console.log(`----------start-------${index}---------${field}---`);
-    // printDataTract(fieldObj);
     fieldAttrs.forEach((attr) => {
       // We don't need the special attribute from postgresql; "unique" is handled separately
       if (attr === 'special' || attr === 'elementType' || attr === 'unique') {

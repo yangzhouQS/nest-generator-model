@@ -449,27 +449,34 @@ export class AutoGenerator {
       str += ',\n';
     });
 
+    const _field = recase('c', field);
     // 设置 defaultFn,updateFn
     if (this.options.isFieldDefaultFn) {
-      if (field === 'id') {
+      if (_field === 'id') {
         str += space[3] + `defaultFn: 'id',\n`;
       }
-      if (field === 'creatorId') {
+      if (_field === 'creatorId') {
         str += space[3] + `defaultFn: 'userId',\n`;
       }
-      if (field === 'creatorName') {
+      if (_field === 'creatorName') {
         str += space[3] + `defaultFn: 'uerName',\n`;
       }
     }
     if (this.options.isFieldUpdateFn) {
-      if (field === 'modifierId') {
+      if (_field === 'modifierId') {
         str += space[3] + `updateFn: 'userId',\n`;
+        str += space[3] + `defaultEqual: 'creatorId',\n`;
       }
-      if (field === 'modifierName') {
+      if (_field === 'modifierName') {
         str += space[3] + `updateFn: 'uerName',\n`;
+        str += space[3] + `defaultEqual: 'creatorName',\n`;
       }
-      if (field === 'updatedAt') {
+      if (_field === 'updatedAt') {
         str += space[3] + `updateFn: 'now',\n`;
+      }
+      if (_field === 'version') {
+        str += space[3] + `updateFn: 'id',\n`;
+        str += space[3] + `defaultEqual: 'id',\n`;
       }
     }
 

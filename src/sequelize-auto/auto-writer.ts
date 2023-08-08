@@ -109,6 +109,11 @@ export class AutoWriter {
     }
   }
 
+  /**
+   * 模型文件创建
+   * @param table
+   * @private
+   */
   private createFile(table: string) {
     // FIXME: schema is not used to write the file name and there could be collisions. For now it
     // is up to the developer to pick the right schema, and potentially chose different output
@@ -123,6 +128,8 @@ export class AutoWriter {
       this.options.directory,
       fileName + (this.options.lang === 'ts' ? '.ts' : '.js'),
     );
+
+    console.log(filePath);
 
     const writeFile = util.promisify(fs.writeFile);
     return writeFile(path.resolve(filePath), this.tableText[table]);

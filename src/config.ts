@@ -18,7 +18,7 @@ export const config = {
   pkSuffixes: null,
   lang: 'es5',
   caseModel: 'c', // init-models导出变量命名规则
-  caseFile: 'c', // 输出文件名规则
+  caseFile: 'k', // 输出文件名规则
   caseProp: 'c', // 字段属性命名规则
   noAlias: false,
   noInitModels: false,

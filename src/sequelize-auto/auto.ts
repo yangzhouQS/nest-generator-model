@@ -66,6 +66,8 @@ export class SequelizeAuto {
     let td = await this.build();
     td = this.relate(td);
     td.text = this.generate(td);
+
+    // 开始写入文件
     await this.write(td);
     return td;
   }

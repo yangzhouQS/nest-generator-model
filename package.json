@@ -23,13 +23,14 @@
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
-    "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.1",
-    "sequelize": "^6.32.1",
-    "mysql2": "^3.6.0",
+    "dayjs": "^1.11.9",
     "lodash": "^4.17.21",
     "mkdirp": "^1.0.4",
-    "reserved-words": "^0.1.2"
+    "mysql2": "^3.6.0",
+    "reflect-metadata": "^0.1.13",
+    "reserved-words": "^0.1.2",
+    "rxjs": "^7.8.1",
+    "sequelize": "^6.32.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

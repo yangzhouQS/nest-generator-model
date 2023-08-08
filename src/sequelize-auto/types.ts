@@ -188,6 +188,10 @@ export interface AutoOptions {
   pkSuffixes?: string[];
   /** Use `sequelize.define` instead of `init` for model initialization.  See issues #527, #559, #573 */
   useDefine: boolean;
+
+  // 模型字段特殊属性
+  isFieldUpdateFn?: boolean;
+  isFieldDefaultFn?: boolean;
 }
 
 export type TSField = {

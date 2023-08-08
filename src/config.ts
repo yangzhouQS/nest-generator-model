@@ -2,7 +2,10 @@ export const config = {
   spaces: true,
   indentation: 2,
   directory: './models',
-  additional: {},
+  additional: {
+    // 时间字段处理
+    timestamps: false,
+  },
   dialect: 'mysql',
   port: 3306,
   host: '127.0.0.1',
@@ -25,6 +28,10 @@ export const config = {
   username: 'root',
   useDefine: true,
   noIndexes: false,
+
+  // 是否设置字段特殊函数默认值
+  isFieldUpdateFn: true,
+  isFieldDefaultFn: true,
 };
 /*
 

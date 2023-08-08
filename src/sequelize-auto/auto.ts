@@ -65,7 +65,11 @@ export class SequelizeAuto {
   async run(): Promise<TableData> {
     let td = await this.build();
     td = this.relate(td);
-    td.text = this.generate(td);
+    const { modelText, serviceText, routerText } = this.generate(td);
+
+    td.modelText = modelText;
+    td.serviceText = serviceText;
+    td.routerText = routerText;
 
     // 开始写入文件
     await this.write(td);

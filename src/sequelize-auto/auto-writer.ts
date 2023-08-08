@@ -16,13 +16,16 @@ import {
   recase,
   Relation,
 } from './types';
-import { printDataTract } from '../utils/helper';
-
 const mkdirp = require('mkdirp');
 
 /** Writes text into files from TableData.text, and writes init-models */
+/**
+ * 文件内容持久化保存
+ */
 export class AutoWriter {
-  tableText: { [name: string]: string };
+  tableModelText: { [name: string]: string };
+  tableServiceText: { [name: string]: string };
+  tableRouterText: { [name: string]: string };
   foreignKeys: { [tableName: string]: { [fieldName: string]: FKSpec } };
   relations: Relation[];
   space: string[];
@@ -42,7 +45,9 @@ export class AutoWriter {
   };
 
   constructor(tableData: TableData, options: AutoOptions) {
-    this.tableText = tableData.text as { [name: string]: string };
+    this.tableModelText = tableData.modelText as { [name: string]: string };
+    this.tableServiceText = tableData.serviceText as { [name: string]: string };
+    this.tableRouterText = tableData.routerText as { [name: string]: string };
     this.foreignKeys = tableData.foreignKeys;
     this.relations = tableData.relations;
     this.options = options;
@@ -55,13 +60,25 @@ export class AutoWriter {
     }
 
     mkdirp.sync(path.resolve(this.options.directory || './models'));
+    mkdirp.sync(path.resolve(this.options.directory + '/model'));
+    mkdirp.sync(path.resolve(this.options.directory + '/service'));
+    mkdirp.sync(path.resolve(this.options.directory + '/router'));
 
-    const tables = _.keys(this.tableText);
+    const tables = _.keys(this.tableModelText);
 
     // write the individual model files
     const promises = tables.map((t) => {
-      return this.createFile(t);
+      return this.createModelFile(t);
     });
+
+    promises.push(
+      ...tables.map((t) => {
+        return this.createServiceFile(t);
+      }),
+      ...tables.map((t) => {
+        return this.createRouterFile(t);
+      }),
+    );
 
     const isTypeScript = this.options.lang === 'ts';
     const assoc = this.createAssociations(isTypeScript);
@@ -114,7 +131,7 @@ export class AutoWriter {
    * @param table
    * @private
    */
-  private createFile(table: string) {
+  private createModelFile(table: string) {
     // FIXME: schema is not used to write the file name and there could be collisions. For now it
     // is up to the developer to pick the right schema, and potentially chose different output
     // folders for each different schema.
@@ -125,14 +142,48 @@ export class AutoWriter {
       this.options.singularize,
     );
     const filePath = path.join(
-      this.options.directory,
+      this.options.directory + '/model',
       fileName + (this.options.lang === 'ts' ? '.ts' : '.js'),
     );
 
     console.log(filePath);
 
     const writeFile = util.promisify(fs.writeFile);
-    return writeFile(path.resolve(filePath), this.tableText[table]);
+    return writeFile(path.resolve(filePath), this.tableModelText[table]);
+  }
+
+  // 服务service文件生成
+  private createServiceFile(table: string) {
+    const [schemaName, tableName] = qNameSplit(table);
+    const fileName = recase(
+      this.options.caseFile,
+      tableName,
+      this.options.singularize,
+    );
+    const filePath = path.join(
+      this.options.directory + '/service',
+      fileName + (this.options.lang === 'ts' ? '.ts' : '.js'),
+    );
+
+    const writeFile = util.promisify(fs.writeFile);
+    return writeFile(path.resolve(filePath), this.tableServiceText[table]);
+  }
+
+  // 路由文件
+  private createRouterFile(table: string) {
+    const [schemaName, tableName] = qNameSplit(table);
+    const fileName = recase(
+      this.options.caseFile,
+      tableName,
+      this.options.singularize,
+    );
+    const filePath = path.join(
+      this.options.directory + '/router',
+      fileName + (this.options.lang === 'ts' ? '.ts' : '.js'),
+    );
+
+    const writeFile = util.promisify(fs.writeFile);
+    return writeFile(path.resolve(filePath), this.tableRouterText[table]);
   }
 
   /** Create the belongsToMany/belongsTo/hasMany/hasOne association strings */

@@ -120,9 +120,10 @@ export class AutoGenerator {
     // 模型公共导入部分生成
     const header = this.makeHeaderTemplate();
 
-    const text: { [name: string]: string } = {};
-    console.log('00000000');
-    printDataTract(tableNames);
+    const modelText: { [name: string]: string } = {};
+    const serviceText: { [name: string]: string } = {};
+    const routerText: { [name: string]: string } = {};
+
     tableNames.forEach((table) => {
       let str = header;
       const [schemaName, tableNameOrig] = qNameSplit(table);
@@ -142,10 +143,12 @@ export class AutoGenerator {
       // console.log(str);
       str = str.replace(re, tableName);
 
-      text[table] = str;
+      modelText[table] = str;
+      serviceText[table] = str;
+      routerText[table] = str;
     });
 
-    return text;
+    return { modelText, serviceText, routerText };
   }
 
   // Create a string for the model of the table

@@ -70,6 +70,9 @@ export interface Relation {
   isM2M: boolean;
 }
 
+/**
+ * 当前表模型需要生成模型数据
+ */
 export class TableData {
   /** Fields for each table; indexed by schemaName.tableName */
   tables: { [tableName: string]: { [fieldName: string]: ColumnDescription } };
@@ -82,7 +85,21 @@ export class TableData {
   /** Relations between models, computed from foreign keys */
   relations: Relation[];
   /** Text to be written to the model files, indexed by schemaName.tableName */
-  text?: { [name: string]: string };
+
+  /**
+   * 表模型生成字符串
+   */
+  modelText?: { [name: string]: string };
+
+  /**
+   * 模型生成字符串
+   */
+  serviceText: { [name: string]: string };
+
+  /**
+   * 路由文件生成字符串
+   */
+  routerText: { [name: string]: string };
 
   constructor() {
     this.tables = {};
